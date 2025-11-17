@@ -253,14 +253,35 @@ export default function PlantDashboard() {
     
     setLoading(true);
     try {
-      await removePlot(plotId);
+      const result = await removePlot(plotId);
       setPlots(plots.filter(p => p.id !== plotId));
+      
+      // Show success message with plant conversion info
+      if (result && result.plantsConverted !== undefined) {
+        const plantText = result.plantsConverted === 1 ? 'plant' : 'plants';
+        alert(`Plot "${plotName}" removed successfully. ${result.plantsConverted} ${plantText} converted to free-standing.`);
+      } else {
+        alert(`Plot "${plotName}" removed successfully.`);
+      }
+      
       // Reload plants to update their plot status
       const updatedPlants = await getPlants();
       setPlants(updatedPlants);
     } catch (error) {
       console.error('Failed to remove plot:', error);
-      alert('Failed to remove plot');
+      let errorMessage = 'Failed to remove plot';
+      
+      if (error.message) {
+        errorMessage += ': ' + error.message;
+      } else if (error.response && error.response.data) {
+        if (typeof error.response.data === 'string') {
+          errorMessage += ': ' + error.response.data;
+        } else if (error.response.data.message) {
+          errorMessage += ': ' + error.response.data.message;
+        }
+      }
+      
+      alert(errorMessage);
     }
     setLoading(false);
   };
@@ -325,12 +346,12 @@ export default function PlantDashboard() {
         row.push(
           <div key={key} className="grid-cell">
             {plant ? (
-              <div className="grid-plant">
-                <div 
-                  className="grid-plant-info clickable" 
-                  onClick={() => navigate(`/plant/${plant.id}`)}
-                  title="Click to edit plant details"
-                >
+              <div 
+                className="grid-plant"
+                onClick={() => navigate(`/plant/${plant.id}`)}
+                title="Click to edit plant details"
+              >
+                <div className="grid-plant-info clickable">
                   <div className="grid-plant-name">{plant.name}</div>
                   <div className="grid-plant-type">{getPlantType(plant.speciesId)}</div>
                 </div>

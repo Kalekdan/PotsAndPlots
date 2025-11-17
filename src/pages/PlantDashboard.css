@@ -236,6 +236,14 @@
   justify-content: center;
   position: relative;
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grid-plant:hover {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+  transform: translateY(-1px);
 }
 
 .grid-plant-info {
@@ -244,18 +252,12 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  pointer-events: none; /* Prevent child from interfering with parent's click */
 }
 
 .grid-plant-info.clickable {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.grid-plant-info.clickable:hover {
-  background: rgba(5, 150, 105, 0.1);
-  border-radius: 4px;
-  padding: 0.25rem;
-  margin: -0.25rem;
+  /* Remove individual hover styles since parent handles them now */
+  transition: none;
 }
 
 .grid-plant-name {
@@ -277,6 +279,8 @@
   right: 2px;
   display: flex;
   gap: 2px;
+  z-index: 10;
+  pointer-events: auto; /* Ensure buttons remain clickable */
 }
 
 .grid-edit-btn, .grid-remove-btn {
