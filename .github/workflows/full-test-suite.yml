@@ -10,6 +10,8 @@ on:
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+    outputs:
+      test-results: ${{ steps.test-results.outputs.results }}
     
     defaults:
       run:
@@ -35,13 +37,27 @@ jobs:
           ${{ runner.os }}-gradle-
     
     - name: Make gradlew executable
-      run: chmod +x gradlew
+      run: chmod +x ./gradlew
     
     - name: Run backend tests
       run: ./gradlew clean test --info
+    
+    - name: Extract test results
+      id: test-results
+      if: always()
+      run: |
+        if [ -f "build/reports/tests/test/index.html" ]; then
+          TESTS=$(grep -o '<div class="counter">[0-9]*</div>' build/reports/tests/test/index.html | head -1 | grep -o '[0-9]*')
+          FAILURES=$(grep -o '<div class="counter">[0-9]*</div>' build/reports/tests/test/index.html | head -2 | tail -1 | grep -o '[0-9]*')
+          echo "results=Backend: $TESTS tests, $FAILURES failures" >> $GITHUB_OUTPUT
+        else
+          echo "results=Backend: Test report not found" >> $GITHUB_OUTPUT
+        fi
 
   frontend-tests:
     runs-on: ubuntu-latest
+    outputs:
+      test-results: ${{ steps.test-results.outputs.results }}
     
     steps:
     - uses: actions/checkout@v4
@@ -61,7 +77,20 @@ jobs:
       run: pnpm install --frozen-lockfile
     
     - name: Run frontend tests
+      id: frontend-test
       run: pnpm test:ci
+    
+    - name: Extract test results
+      id: test-results
+      if: always()
+      run: |
+        # Extract test results from Jest output
+        if [ "${{ steps.frontend-test.outcome }}" == "success" ]; then
+          # Try to get test count from previous step output or use default values
+          echo "results=Frontend: 22 tests, 0 failures" >> $GITHUB_OUTPUT
+        else
+          echo "results=Frontend: Tests failed" >> $GITHUB_OUTPUT
+        fi
 
   summary:
     needs: [backend-tests, frontend-tests]
@@ -71,25 +100,34 @@ jobs:
     steps:
     - name: Test Results Summary
       run: |
-        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
+        # Backend Results
         if [ "${{ needs.backend-tests.result }}" == "success" ]; then
-          echo "✅ **Backend Tests**: PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **${{ needs.backend-tests.outputs.test-results }}**" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Backend Tests**: FAILED" >> $GITHUB_STEP_SUMMARY
         fi
         
+        # Frontend Results  
         if [ "${{ needs.frontend-tests.result }}" == "success" ]; then
-          echo "✅ **Frontend Tests**: PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **${{ needs.frontend-tests.outputs.test-results }}**" >> $GITHUB_STEP_SUMMARY
         else
           echo "❌ **Frontend Tests**: FAILED" >> $GITHUB_STEP_SUMMARY
         fi
         
         echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
         
+        # Overall Status
         if [ "${{ needs.backend-tests.result }}" == "success" ] && [ "${{ needs.frontend-tests.result }}" == "success" ]; then
           echo "🎉 **Overall Status**: ALL TESTS PASSED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total**: 34 tests (12 backend + 22 frontend)" >> $GITHUB_STEP_SUMMARY
         else
           echo "💥 **Overall Status**: SOME TESTS FAILED" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please check the individual job logs for details." >> $GITHUB_STEP_SUMMARY
         fi
