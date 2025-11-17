@@ -88,8 +88,37 @@ export async function updatePlant(plantId, plantData) {
   });
 }
 
+export async function movePlant(plantId, moveData) {
+  console.log('Moving plant:', plantId, 'to:', moveData);
+  
+  return apiCall(`/plants/${plantId}/move`, {
+    method: 'PUT',
+    body: JSON.stringify(moveData)
+  });
+}
+
 export async function removePlant(plantId) {
   return apiCall(`/plants/${plantId}`, {
+    method: 'DELETE'
+  });
+}
+
+export async function addPlot(plotData) {
+  return apiCall('/plots', {
+    method: 'POST',
+    body: JSON.stringify(plotData)
+  });
+}
+
+export async function updatePlot(plotId, plotData) {
+  return apiCall(`/plots/${plotId}`, {
+    method: 'PUT',
+    body: JSON.stringify(plotData)
+  });
+}
+
+export async function removePlot(plotId) {
+  return apiCall(`/plots/${plotId}`, {
     method: 'DELETE'
   });
 }

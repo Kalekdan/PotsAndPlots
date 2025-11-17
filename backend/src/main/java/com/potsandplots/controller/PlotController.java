@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/plots")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class PlotController {
     
     @Autowired
@@ -32,5 +32,26 @@ public class PlotController {
     @PostMapping
     public Plot createPlot(@RequestBody Plot plot) {
         return plotRepository.save(plot);
+    }
+    
+    @PutMapping("/{id}")
+    public Plot updatePlot(@PathVariable Long id, @RequestBody Plot plotUpdate) {
+        return plotRepository.findById(id)
+            .map(plot -> {
+                plot.setName(plotUpdate.getName());
+                plot.setPlotType(plotUpdate.getPlotType());
+                plot.setLength(plotUpdate.getLength());
+                plot.setWidth(plotUpdate.getWidth());
+                plot.setSoilType(plotUpdate.getSoilType());
+                plot.setPh(plotUpdate.getPh());
+                plot.setDrainageLevel(plotUpdate.getDrainageLevel());
+                return plotRepository.save(plot);
+            })
+            .orElse(null);
+    }
+    
+    @DeleteMapping("/{id}")
+    public void deletePlot(@PathVariable Long id) {
+        plotRepository.deleteById(id);
     }
 }

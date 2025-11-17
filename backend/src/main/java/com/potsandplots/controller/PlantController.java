@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.HashMap;
 
 @RestController
@@ -40,6 +41,19 @@ public class PlantController {
     
     @PostMapping
     public Plant createPlant(@RequestBody PlantCreateRequest request) {
+        // Validate position conflicts if plant is being placed in a plot with specific coordinates
+        if (request.getPlotId() != null && request.getPositionX() != null && request.getPositionY() != null) {
+            List<Plant> existingPlantsInPlot = plantRepository.findByPlotId(request.getPlotId());
+            boolean positionOccupied = existingPlantsInPlot.stream()
+                .anyMatch(p -> Objects.equals(p.getPositionX(), request.getPositionX()) && 
+                             Objects.equals(p.getPositionY(), request.getPositionY()));
+            
+            if (positionOccupied) {
+                throw new RuntimeException("Position (" + request.getPositionX() + ", " + request.getPositionY() + 
+                                         ") is already occupied by another plant in this plot");
+            }
+        }
+        
         Plant plant = new Plant(request.getName(), request.getSpeciesId(), request.getAreaId());
         plant.setPlotId(request.getPlotId());
         plant.setPositionX(request.getPositionX());
@@ -83,6 +97,64 @@ public class PlantController {
                 .orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
             System.err.println("Error updating plant: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PutMapping("/{id}/move")
+    public ResponseEntity<Plant> movePlant(@PathVariable Long id, @RequestBody Map<String, Object> moveData) {
+        try {
+            return plantRepository.findById(id)
+                .map(plant -> {
+                    // Update area if provided
+                    if (moveData.containsKey("areaId")) {
+                        Long newAreaId = Long.valueOf(moveData.get("areaId").toString());
+                        plant.setAreaId(newAreaId);
+                    }
+                    
+                    // Update plot if provided (can be null for free-standing plants)
+                    if (moveData.containsKey("plotId")) {
+                        Object plotIdValue = moveData.get("plotId");
+                        if (plotIdValue == null || "null".equals(plotIdValue.toString())) {
+                            plant.setPlotId(null);
+                            plant.setPositionX(null);
+                            plant.setPositionY(null);
+                        } else {
+                            Long newPlotId = Long.valueOf(plotIdValue.toString());
+                            
+                            // Update position if provided and validate conflicts
+                            if (moveData.containsKey("positionX") && moveData.containsKey("positionY")) {
+                                Integer newPositionX = Integer.valueOf(moveData.get("positionX").toString());
+                                Integer newPositionY = Integer.valueOf(moveData.get("positionY").toString());
+                                
+                                // Check for position conflicts (excluding the current plant)
+                                List<Plant> existingPlantsInPlot = plantRepository.findByPlotId(newPlotId);
+                                boolean positionOccupied = existingPlantsInPlot.stream()
+                                    .filter(p -> !Objects.equals(p.getId(), plant.getId())) // Exclude current plant
+                                    .anyMatch(p -> Objects.equals(p.getPositionX(), newPositionX) && 
+                                                 Objects.equals(p.getPositionY(), newPositionY));
+                                
+                                if (positionOccupied) {
+                                    throw new RuntimeException("Position (" + newPositionX + ", " + newPositionY + 
+                                                             ") is already occupied by another plant in this plot");
+                                }
+                                
+                                plant.setPositionX(newPositionX);
+                                plant.setPositionY(newPositionY);
+                            }
+                            
+                            plant.setPlotId(newPlotId);
+                        }
+                    }
+                    
+                    Plant savedPlant = plantRepository.save(plant);
+                    System.out.println("Plant moved successfully: " + savedPlant.getName());
+                    return ResponseEntity.ok(savedPlant);
+                })
+                .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            System.err.println("Error moving plant: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }

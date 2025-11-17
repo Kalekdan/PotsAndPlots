@@ -1,12 +1,10 @@
 # pots-and-plots
 
-AI coding agent specification. Simple CLI to run the frontend.
+Plant management application with Spring Boot backend and React frontend.
 
-## Spec-driven CLI: `potsandplots`
+## CLI Tool: `potsandplots`
 
-Purpose: Start the frontend development server with pnpm.
-
-Machine-readable spec (YAML)
+Starts the frontend development server with automatic pnpm management.
 
 ```yaml
 name: potsandplots
@@ -14,106 +12,156 @@ description: Start frontend with pnpm
 commands:
   - name: start
     description: Install pnpm if missing, then run pnpm start
-    behavior:
-      - check if pnpm is installed
-      - if missing, install pnpm globally via npm
-      - run pnpm install
-      - run pnpm start
-      - stream stdout/stderr
-      - return process exit code
 ```
 
-Behavior
+**Usage**: `potsandplots start`
 
-- Check if pnpm is available in PATH
-- If missing, run `npm install -g pnpm`
-- Run `pnpm install` then `pnpm start` in current directory
-- Forward all output to user
-- Return the exit code from pnpm start
-
-Examples
-
-- Start frontend: `potsandplots start`
-
-Implementation notes
-
-- Auto-install pnpm if missing using npm
-- Only run `pnpm install` and `pnpm start`
-- No custom arguments needed
+**Behavior**:
+- Checks if pnpm is installed, installs globally if missing
+- Runs `pnpm install` then `pnpm start`
+- Forwards all output to user
 
 ## Quick Start
 
-To start the entire application (frontend only via CLI):
-
+**Frontend Only**:
 ```bash
-# Using the potsandplots CLI
 node bin/potsandplots.js start
 ```
 
-Or if installed globally:
-
+**Global Installation**:
 ```bash
-# Install globally first
-npm install -g .
+npm install -g . && potsandplots start
+```
 
-# Then run
+Frontend runs on `http://localhost:3000`
+
+## Full Application Setup
+
+**Backend** (`http://localhost:8080`):
+```bash
+cd backend && ./gradlew bootRun
+```
+
+**Frontend** (`http://localhost:3000`):
+```bash
 potsandplots start
 ```
 
-This will:
-1. Check if pnpm is installed, install it if missing
-2. Run `pnpm install` to install dependencies
-3. Start the React development server on `http://localhost:3000`
+**Sample Data Included**:
+- Areas: Front Garden, Back Garden, Greenhouse
+- Plots: Tomato Bed, Herb Row with positioned plants
+- Plants: Tomatoes, herbs, houseplants with realistic data
+- H2 database console: `http://localhost:8080/h2-console`
 
-## Full Development Setup
+## Technology Stack
 
-To run both frontend and backend:
+**Backend:**
+- Spring Boot 3.2.0 with JPA, H2 database, CORS
+- Java 17, Gradle build system
+- REST API endpoints for plant/plot/area management
 
-1. **Start Backend** (in one terminal):
-   ```bash
-   cd backend
-   ./gradlew bootRun
-   ```
-   Backend will be available at `http://localhost:8080`
+**Frontend:**
+- React 19.1.0 with React Router 6.26.1
+- Modern CSS with responsive design, animations
+- pnpm package management
 
-2. **Start Frontend** (in another terminal):
-   ```bash
-   potsandplots start
-   ```
-   Frontend will be available at `http://localhost:3000`
+**Development:**
+- Build: `./gradlew build`
+- Test: `./gradlew test` 
+- Backend: `./gradlew bootRun`
 
-# Backend
-The backend is spring boot and built using gradle. The backend exposes endpoints used by the web app to get data about the plants.
+## Features
 
-## Running the Backend
+### Dashboard
+- Visual grid layouts showing plant positions within plots
+- Separate sections for free-standing plants vs. plot plants
+- Plant health status indicators and notes
+- Click-to-navigate interface
 
-To start the backend server:
+### Plant Management
+**Adding Plants**:
+- Click empty plot grid cells to add plants at specific positions
+- "+ Add Free-standing Plant" button for area-only plants
+- Position conflict detection prevents overlapping placements
+- Auto-selects first available position when adding to plots
 
-```bash
-cd backend
-./gradlew bootRun
+**Removing Plants**:
+- Remove button (🗑️) with confirmation dialog
+- Works for both plot and free-standing plants
+
+**Position Rules**:
+- Plants cannot share the same plot space (backend validation)
+- Plot plants must have specific coordinates
+- Visual indicators for occupied/available positions
+
+### Plant Editing
+**Details Page**:
+- Click any plant to open editing page
+- Edit name, species, health status, notes, watering schedule, planted date
+- Form validation for required fields
+- Location information display (area, plot, position)
+
+**Plant Movement**:
+- "🚚 Move Plant" button opens movement dialog
+- Select different areas with dropdown
+- Choose specific plots or "Free-standing (no plot)"
+- Interactive position grid shows available vs occupied spaces
+- Auto-selects first available position
+- Prevents selecting occupied positions
+
+### Plot Management
+**Adding Plots**:
+- "+ Add Plot" button in area headers
+- Form includes name, type (raised-bed, container, ground, hydroponic)
+- Dimensions (width × length in meters)
+- Soil properties (type, pH, drainage)
+
+**Removing Plots**:
+- Remove button (✕) in plot headers
+- Confirmation dialog warns about plant conversion
+- Plot plants become free-standing in same area
+
+### Advanced Features
+- **Position Conflict Detection**: Backend validation prevents overlapping plants
+- **Auto-positioning**: Finds first available position automatically
+- **Interactive Grids**: Visual position selection with hover states
+- **Real-time Validation**: Immediate error feedback for conflicts
+- **Responsive Design**: Mobile-friendly with modern animations
+
+## Architecture
+
+**Frontend**: React 19.1.0 with Router, modern CSS, modal dialogs, form validation  
+**Backend**: Spring Boot 3.2.0 with JPA, H2 database, CORS configuration  
+**UI**: Card-based layout, interactive grids, position selection, real-time feedback
+
+## Project Structure
+
+```
+potsandplots/
+├── bin/potsandplots.js          # CLI tool for starting frontend
+├── backend/                     # Spring Boot backend application
+│   ├── src/main/java/com/potsandplots/
+│   │   ├── controller/          # REST API endpoints
+│   │   ├── model/              # JPA entities (Plant, Plot, Area, PlantType)
+│   │   ├── repository/         # Data access layer
+│   │   ├── dto/                # Data transfer objects
+│   │   └── config/             # Configuration and data initialization
+│   └── build.gradle            # Backend dependencies and build config
+├── src/                        # React frontend application
+│   ├── pages/                  
+│   │   ├── PlantDashboard.jsx  # Main dashboard with interactive grids
+│   │   └── PlantDetails.jsx    # Plant editing page with move dialog
+│   ├── api/backendApi.js       # API client for backend communication
+│   └── App.js                  # Main application with routing
+├── public/                     # Static assets
+├── package.json               # Frontend dependencies and scripts
+└── README.md                  # Basic project information
 ```
 
-The backend will start on `http://localhost:8080` and includes:
-- REST API endpoints for plant management
-- H2 in-memory database for development
-- CORS configuration for frontend integration
-- Swagger/OpenAPI documentation (if enabled)
+## Key Files
 
-### Backend Development
-
-- Build: `./gradlew build`
-- Test: `./gradlew test`
-- Clean: `./gradlew clean`
-
-The backend uses:
-- Spring Boot 3.2.0
-- Spring Data JPA
-- H2 Database
-- Java 17
-
-# Features and functionality
-## Adding and removing plants
-- A button next to each plant should let you remove it with a single click
-- A button next to each area/plot should let you add a new plant
-- Clicking on a plant opens a page where you can update the settings of each plant
+- **PlantDashboard.jsx**: Main interface with area/plot management
+- **PlantDetails.jsx**: Plant editing with movement dialog
+- **PlantController.java**: Backend API with position validation
+- **DataInitializer.java**: Sample data initialization
+- **backendApi.js**: Frontend API client with error handling
