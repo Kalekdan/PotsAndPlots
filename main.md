@@ -70,6 +70,8 @@ potsandplots start
 - Test: `./gradlew test` 
 - Backend: `./gradlew bootRun`
 
+There are frontend and backend tests, all new functionality should have a test added.
+
 ## Features
 
 ### Dashboard
