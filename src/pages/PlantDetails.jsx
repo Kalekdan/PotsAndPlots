@@ -395,6 +395,7 @@ export default function PlantDetails() {
               onClick={openMoveDialog}
               className="btn-secondary"
               disabled={saving}
+              data-testid="move-plant-button"
             >
               🚚 Move Plant
             </button>

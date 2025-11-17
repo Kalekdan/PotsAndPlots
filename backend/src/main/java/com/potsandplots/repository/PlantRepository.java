@@ -10,4 +10,5 @@ public interface PlantRepository extends JpaRepository<Plant, Long> {
     List<Plant> findByAreaId(Long areaId);
     List<Plant> findByPlotId(Long plotId);
     List<Plant> findByAreaIdAndPlotIdIsNull(Long areaId);
+    List<Plant> findByAreaIdAndPositionXAndPositionY(Long areaId, Integer positionX, Integer positionY);
 }

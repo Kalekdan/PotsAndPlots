@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.HashMap;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @RestController
 @RequestMapping("/api/plants")
@@ -41,16 +43,14 @@ public class PlantController {
     
     @PostMapping
     public Plant createPlant(@RequestBody PlantCreateRequest request) {
-        // Validate position conflicts if plant is being placed in a plot with specific coordinates
-        if (request.getPlotId() != null && request.getPositionX() != null && request.getPositionY() != null) {
-            List<Plant> existingPlantsInPlot = plantRepository.findByPlotId(request.getPlotId());
-            boolean positionOccupied = existingPlantsInPlot.stream()
-                .anyMatch(p -> Objects.equals(p.getPositionX(), request.getPositionX()) && 
-                             Objects.equals(p.getPositionY(), request.getPositionY()));
+        // Validate position conflicts if plant has specific coordinates
+        if (request.getPositionX() != null && request.getPositionY() != null) {
+            List<Plant> existingPlants = plantRepository.findByAreaIdAndPositionXAndPositionY(
+                    request.getAreaId(), request.getPositionX(), request.getPositionY());
             
-            if (positionOccupied) {
+            if (!existingPlants.isEmpty()) {
                 throw new RuntimeException("Position (" + request.getPositionX() + ", " + request.getPositionY() + 
-                                         ") is already occupied by another plant in this plot");
+                                         ") is already occupied by another plant in this area");
             }
         }
         
@@ -89,7 +89,25 @@ public class PlantController {
                     if (plantUpdate.getPlantedDate() != null) {
                         plant.setPlantedDate(plantUpdate.getPlantedDate());
                     }
-                    // Note: Not updating area, plot, or position as those require more complex logic
+                    
+                    // Handle position updates with conflict checking
+                    if (plantUpdate.getPositionX() != null && plantUpdate.getPositionY() != null) {
+                        List<Plant> existingPlants = plantRepository.findByAreaIdAndPositionXAndPositionY(
+                                plant.getAreaId(), plantUpdate.getPositionX(), plantUpdate.getPositionY());
+                        
+                        // Check if any other plant occupies this position
+                        boolean positionOccupied = existingPlants.stream()
+                                .anyMatch(p -> !Objects.equals(p.getId(), plant.getId()));
+                        
+                        if (positionOccupied) {
+                            throw new RuntimeException("Position (" + plantUpdate.getPositionX() + ", " + 
+                                                     plantUpdate.getPositionY() + ") is already occupied");
+                        }
+                        
+                        plant.setPositionX(plantUpdate.getPositionX());
+                        plant.setPositionY(plantUpdate.getPositionY());
+                    }
+                    
                     Plant savedPlant = plantRepository.save(plant);
                     System.out.println("Plant updated successfully: " + savedPlant.getName());
                     return ResponseEntity.ok(savedPlant);
@@ -179,5 +197,12 @@ public class PlantController {
             response.put("error", e.getMessage());
             return ResponseEntity.internalServerError().body(response);
         }
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }

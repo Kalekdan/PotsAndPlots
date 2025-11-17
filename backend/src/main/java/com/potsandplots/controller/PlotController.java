@@ -28,8 +28,10 @@ public class PlotController {
     }
     
     @GetMapping("/{id}")
-    public Plot getPlot(@PathVariable Long id) {
-        return plotRepository.findById(id).orElse(null);
+    public ResponseEntity<Plot> getPlot(@PathVariable Long id) {
+        return plotRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
     
     @GetMapping("/area/{areaId}")
