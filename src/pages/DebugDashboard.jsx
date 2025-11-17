@@ -4,6 +4,8 @@ import {
   getPlots,
   getPlants,
   getPlantTypes,
+  addPlant,
+  removePlant,
 } from '../api/mockApi';
 
 export default function DebugDashboard() {
@@ -11,6 +13,7 @@ export default function DebugDashboard() {
   const [plots, setPlots] = useState([]);
   const [plants, setPlants] = useState([]);
   const [plantTypes, setPlantTypes] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -31,10 +34,72 @@ export default function DebugDashboard() {
   const getPlantType = (id) =>
     plantTypes.find((pt) => pt.id === id)?.common_name || 'Unknown';
 
+  const handleRemovePlant = async (plantId) => {
+    if (!window.confirm('Are you sure you want to remove this plant?')) return;
+    
+    setLoading(true);
+    try {
+      await removePlant(plantId);
+      setPlants(plants.filter(p => p.id !== plantId));
+    } catch (error) {
+      console.error('Failed to remove plant:', error);
+      alert('Failed to remove plant');
+    }
+    setLoading(false);
+  };
+
+  const handleAddPlant = async (areaId, plotId = null, position = null) => {
+    const plantName = prompt('Enter plant name:');
+    if (!plantName) return;
+
+    // Get available plant types for selection
+    const selectedTypeIndex = prompt(
+      `Select plant type (0-${plantTypes.length - 1}):\n` +
+      plantTypes.map((pt, i) => `${i}: ${pt.common_name}`).join('\n')
+    );
+    
+    if (selectedTypeIndex === null || selectedTypeIndex === '') return;
+    
+    const typeIndex = parseInt(selectedTypeIndex);
+    if (typeIndex < 0 || typeIndex >= plantTypes.length) {
+      alert('Invalid plant type selection');
+      return;
+    }
+
+    const selectedType = plantTypes[typeIndex];
+    
+    setLoading(true);
+    try {
+      const newPlant = await addPlant({
+        name: plantName,
+        species_id: selectedType.id,
+        area_id: areaId,
+        plot_id: plotId,
+        position: position
+      });
+      setPlants([...plants, newPlant]);
+    } catch (error) {
+      console.error('Failed to add plant:', error);
+      alert('Failed to add plant');
+    }
+    setLoading(false);
+  };
+
   const renderPlant = (plant) => (
     <div key={plant.id} style={styles.boxInner}>
-      <strong>{plant.name}</strong> — <em>{getPlantType(plant.species_id)}</em>
-      {plant.notes && <p><small>{plant.notes}</small></p>}
+      <div style={styles.plantContent}>
+        <div>
+          <strong>{plant.name}</strong> — <em>{getPlantType(plant.species_id)}</em>
+          {plant.notes && <p><small>{plant.notes}</small></p>}
+        </div>
+        <button 
+          onClick={() => handleRemovePlant(plant.id)} 
+          style={styles.removeButton}
+          disabled={loading}
+        >
+          ❌
+        </button>
+      </div>
     </div>
   );
 
@@ -58,14 +123,31 @@ export default function DebugDashboard() {
         row.push(
           <div key={key} style={styles.gridCell}>
             {plant ? (
-              <div>
-                <strong>{plant.name}</strong>
-                <div style={{ fontSize: '0.8em', color: '#555' }}>
-                  {getPlantType(plant.species_id)}
+              <div style={styles.gridPlantContent}>
+                <div style={styles.gridPlantInfo}>
+                  <strong>{plant.name}</strong>
+                  <div style={{ fontSize: '0.8em', color: '#555' }}>
+                    {getPlantType(plant.species_id)}
+                  </div>
                 </div>
+                <button 
+                  onClick={() => handleRemovePlant(plant.id)} 
+                  style={styles.gridRemoveButton}
+                  disabled={loading}
+                  title="Remove plant"
+                >
+                  ❌
+                </button>
               </div>
             ) : (
-              <span style={{ color: '#ccc' }}>—</span>
+              <button 
+                onClick={() => handleAddPlant(plot.area_id, plot.id, { x, y })} 
+                style={styles.addButton}
+                disabled={loading}
+                title="Add plant here"
+              >
+                ➕
+              </button>
             )}
           </div>
         );
@@ -78,17 +160,25 @@ export default function DebugDashboard() {
     }
 
     return (
-      <div>
-        <div style={styles.plotMeta}>
-          🧱 {plot.name} — {plot.plot_type} ({plot.width}×{plot.length})
-        </div>
-        <div style={styles.gridWrapper}>{grid}</div>
-      </div>
+      <div style={styles.gridWrapper}>{grid}</div>
     );
   };
 
   const renderPlot = (plot) => (
     <div key={plot.id} style={styles.box}>
+      <div style={styles.plotHeader}>
+        <div style={styles.plotMeta}>
+          🧱 {plot.name} — {plot.plot_type} ({plot.width}×{plot.length})
+        </div>
+        <button 
+          onClick={() => handleAddPlant(plot.area_id, plot.id)} 
+          style={styles.addPlantButton}
+          disabled={loading}
+          title="Add plant to this plot"
+        >
+          ➕ Add Plant
+        </button>
+      </div>
       {renderPlotGrid(plot)}
     </div>
   );
@@ -100,15 +190,37 @@ export default function DebugDashboard() {
     );
     return (
       <div key={area.id} style={styles.box}>
-        <h3>📍 Area: {area.name}</h3>
-        <p>
-          {area.location_type} • brightness: {area.brightness} •{' '}
-          {area.is_greenhouse ? '🌿 Greenhouse' : area.is_covered ? '🛡 Covered' : '☀️ Exposed'}
-        </p>
+        <div style={styles.areaHeader}>
+          <div>
+            <h3>📍 Area: {area.name}</h3>
+            <p>
+              {area.location_type} • brightness: {area.brightness} •{' '}
+              {area.is_greenhouse ? '🌿 Greenhouse' : area.is_covered ? '🛡 Covered' : '☀️ Exposed'}
+            </p>
+          </div>
+          <button 
+            onClick={() => handleAddPlant(area.id)} 
+            style={styles.addPlantButton}
+            disabled={loading}
+            title="Add plant to this area"
+          >
+            ➕ Add Plant
+          </button>
+        </div>
         {areaPlots.map(renderPlot)}
         {areaPlants.length > 0 && (
           <div style={styles.box}>
-            <h4>🪴 Loose Plants:</h4>
+            <div style={styles.loosePlantsHeader}>
+              <h4>🪴 Loose Plants:</h4>
+              <button 
+                onClick={() => handleAddPlant(area.id)} 
+                style={styles.addPlantButton}
+                disabled={loading}
+                title="Add loose plant to this area"
+              >
+                ➕ Add Plant
+              </button>
+            </div>
             {areaPlants.map(renderPlant)}
           </div>
         )}
@@ -160,5 +272,88 @@ const styles = {
     textAlign: 'center',
     padding: '0.5rem',
     boxSizing: 'border-box',
+    position: 'relative',
+  },
+  areaHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '1rem',
+  },
+  plotHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
+  loosePlantsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.5rem',
+  },
+  plantContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    width: '100%',
+  },
+  gridPlantContent: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  gridPlantInfo: {
+    textAlign: 'center',
+    marginBottom: '0.25rem',
+  },
+  addPlantButton: {
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    padding: '0.5rem 1rem',
+    cursor: 'pointer',
+    fontSize: '0.9rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.25rem',
+  },
+  addButton: {
+    backgroundColor: '#e8f5e8',
+    color: '#4CAF50',
+    border: '2px dashed #4CAF50',
+    borderRadius: '4px',
+    padding: '0.5rem',
+    cursor: 'pointer',
+    fontSize: '1.2rem',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeButton: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    color: '#ff4444',
+    padding: '0.25rem',
+  },
+  gridRemoveButton: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: '0.8rem',
+    color: '#ff4444',
+    padding: '0.25rem',
+    position: 'absolute',
+    top: '2px',
+    right: '2px',
   },
 };

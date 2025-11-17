@@ -5,7 +5,12 @@ PotsAndPlots is a web application built with React. The core of the project is w
 ## Project Overview
 
 This app was scaffolded using [Create React App](https://github.com/facebook/create-react-app).  
-While the app's specific functionality isn't detailed in this README, the structure and dependencies suggest it is a JavaScript-driven SPA with React at its core.
+
+The app is a web app to let users manage a set of plants. It will let users:
+- Add and remove plants to various areas (areas and 'plots')
+- See which plants need watering/attention
+- Manage both indoor/outdoor pot plants and plots of plants
+
 
 ## Getting Started
 
@@ -27,7 +32,23 @@ pnpm install
 
 ### Running the App
 
-To start the development server, run:
+#### Using the CLI Tool (Recommended)
+
+This project includes a CLI tool that automatically handles pnpm installation and starts the development server:
+
+```bash
+potsandplots start
+```
+
+The CLI will:
+- Check if pnpm is installed
+- Auto-install pnpm globally if missing (via `npm install -g pnpm`)
+- Run `pnpm install` to install dependencies
+- Start the development server with `pnpm start`
+
+#### Manual Method
+
+Alternatively, you can start the development server manually:
 
 ```bash
 pnpm start
@@ -66,10 +87,31 @@ pnpm test
 
 ## Available Scripts
 
+### CLI Tool
+- `potsandplots start` – Auto-installs pnpm if needed and starts the development server.
+
+### Manual Scripts
 - `pnpm start` – Runs the app in development mode.
 - `pnpm build` – Builds the app for production.
 - `pnpm test` – Launches the test runner.
 - `pnpm run eject` – Ejects the configuration (irreversible, advanced use).
+
+## CLI Tool
+
+This project includes a custom CLI tool (`potsandplots`) that simplifies the development workflow. The CLI follows the specification defined in [`main.md`](main.md).
+
+### Usage
+```bash
+potsandplots start
+```
+
+### Features
+- Automatically detects if pnpm is installed
+- Installs pnpm globally if missing using npm
+- Runs `pnpm install` to ensure dependencies are up to date
+- Starts the development server
+- Streams all output to the console
+- Returns proper exit codes for CI/CD integration
 
 ## Learn More
 

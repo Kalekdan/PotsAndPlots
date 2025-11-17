@@ -425,3 +425,33 @@ export async function getPlantTypes() {
     },
   ];
 }
+
+let plantIdCounter = 100;
+
+export async function addPlant(plantData) {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  const newPlant = {
+    id: `plant-${plantIdCounter++}`,
+    name: plantData.name || 'New Plant',
+    species_id: plantData.species_id,
+    area_id: plantData.area_id,
+    plot_id: plantData.plot_id || null,
+    position: plantData.position || null,
+    planted_date: new Date().toISOString().split('T')[0],
+    health_status: 'healthy',
+    notes: plantData.notes || '',
+    watering_schedule: 'weekly'
+  };
+  
+  return newPlant;
+}
+
+export async function removePlant(plantId) {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 200));
+  
+  // In a real API, this would delete the plant from the database
+  return { success: true, plantId };
+}
