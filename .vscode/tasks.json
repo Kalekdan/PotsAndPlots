@@ -28,6 +28,34 @@
 			"group": "test",
 			"problemMatcher": [],
 			"isBackground": false
+		},
+		{
+			"label": "Build Backend",
+			"type": "shell",
+			"command": "./gradlew",
+			"args": [
+				"build"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/backend"
+			},
+			"group": "build",
+			"problemMatcher": [],
+			"isBackground": false
+		},
+		{
+			"label": "Start Backend",
+			"type": "shell",
+			"command": "./gradlew",
+			"args": [
+				"bootRun"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/backend"
+			},
+			"group": "build",
+			"problemMatcher": [],
+			"isBackground": true
 		}
 	]
 }

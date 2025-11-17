@@ -6,7 +6,7 @@ import {
   getPlantTypes,
   addPlant,
   removePlant,
-} from '../api/mockApi';
+} from '../api/backendApi';
 
 export default function DebugDashboard() {
   const [areas, setAreas] = useState([]);
@@ -32,7 +32,7 @@ export default function DebugDashboard() {
   }, []);
 
   const getPlantType = (id) =>
-    plantTypes.find((pt) => pt.id === id)?.common_name || 'Unknown';
+    plantTypes.find((pt) => pt.id === id)?.commonName || 'Unknown';
 
   const handleRemovePlant = async (plantId) => {
     if (!window.confirm('Are you sure you want to remove this plant?')) return;
@@ -55,7 +55,7 @@ export default function DebugDashboard() {
     // Get available plant types for selection
     const selectedTypeIndex = prompt(
       `Select plant type (0-${plantTypes.length - 1}):\n` +
-      plantTypes.map((pt, i) => `${i}: ${pt.common_name}`).join('\n')
+      plantTypes.map((pt, i) => `${i}: ${pt.commonName}`).join('\n')
     );
     
     if (selectedTypeIndex === null || selectedTypeIndex === '') return;
@@ -89,7 +89,7 @@ export default function DebugDashboard() {
     <div key={plant.id} style={styles.boxInner}>
       <div style={styles.plantContent}>
         <div>
-          <strong>{plant.name}</strong> — <em>{getPlantType(plant.species_id)}</em>
+          <strong>{plant.name}</strong> — <em>{getPlantType(plant.speciesId)}</em>
           {plant.notes && <p><small>{plant.notes}</small></p>}
         </div>
         <button 
@@ -105,13 +105,13 @@ export default function DebugDashboard() {
 
   const renderPlotGrid = (plot) => {
     const grid = [];
-    const plotPlants = plants.filter((p) => p.plot_id === plot.id);
+    const plotPlants = plants.filter((p) => p.plotId === plot.id);
 
     // Create lookup by x/y for quick fill
     const plantMap = {};
     plotPlants.forEach((p) => {
-      if (p.position) {
-        plantMap[`${p.position.x},${p.position.y}`] = p;
+      if (p.positionX !== null && p.positionY !== null) {
+        plantMap[`${p.positionX},${p.positionY}`] = p;
       }
     });
 
@@ -127,7 +127,7 @@ export default function DebugDashboard() {
                 <div style={styles.gridPlantInfo}>
                   <strong>{plant.name}</strong>
                   <div style={{ fontSize: '0.8em', color: '#555' }}>
-                    {getPlantType(plant.species_id)}
+                    {getPlantType(plant.speciesId)}
                   </div>
                 </div>
                 <button 
@@ -141,7 +141,7 @@ export default function DebugDashboard() {
               </div>
             ) : (
               <button 
-                onClick={() => handleAddPlant(plot.area_id, plot.id, { x, y })} 
+                onClick={() => handleAddPlant(plot.areaId, plot.id, { x, y })} 
                 style={styles.addButton}
                 disabled={loading}
                 title="Add plant here"
@@ -168,10 +168,10 @@ export default function DebugDashboard() {
     <div key={plot.id} style={styles.box}>
       <div style={styles.plotHeader}>
         <div style={styles.plotMeta}>
-          🧱 {plot.name} — {plot.plot_type} ({plot.width}×{plot.length})
+          🧱 {plot.name} — {plot.plotType} ({plot.width}×{plot.length})
         </div>
         <button 
-          onClick={() => handleAddPlant(plot.area_id, plot.id)} 
+          onClick={() => handleAddPlant(plot.areaId, plot.id)} 
           style={styles.addPlantButton}
           disabled={loading}
           title="Add plant to this plot"
@@ -184,9 +184,9 @@ export default function DebugDashboard() {
   );
 
   const renderArea = (area) => {
-    const areaPlots = plots.filter((p) => p.area_id === area.id);
+    const areaPlots = plots.filter((p) => p.areaId === area.id);
     const areaPlants = plants.filter(
-      (p) => p.area_id === area.id && !p.plot_id
+      (p) => p.areaId === area.id && !p.plotId
     );
     return (
       <div key={area.id} style={styles.box}>
@@ -194,8 +194,8 @@ export default function DebugDashboard() {
           <div>
             <h3>📍 Area: {area.name}</h3>
             <p>
-              {area.location_type} • brightness: {area.brightness} •{' '}
-              {area.is_greenhouse ? '🌿 Greenhouse' : area.is_covered ? '🛡 Covered' : '☀️ Exposed'}
+              {area.locationType} • brightness: {area.brightness} •{' '}
+              {area.isGreenhouse ? '🌿 Greenhouse' : area.isCovered ? '🛡 Covered' : '☀️ Exposed'}
             </p>
           </div>
           <button 

@@ -41,6 +41,76 @@ Implementation notes
 - Only run `pnpm install` and `pnpm start`
 - No custom arguments needed
 
+## Quick Start
+
+To start the entire application (frontend only via CLI):
+
+```bash
+# Using the potsandplots CLI
+node bin/potsandplots.js start
+```
+
+Or if installed globally:
+
+```bash
+# Install globally first
+npm install -g .
+
+# Then run
+potsandplots start
+```
+
+This will:
+1. Check if pnpm is installed, install it if missing
+2. Run `pnpm install` to install dependencies
+3. Start the React development server on `http://localhost:3000`
+
+## Full Development Setup
+
+To run both frontend and backend:
+
+1. **Start Backend** (in one terminal):
+   ```bash
+   cd backend
+   ./gradlew bootRun
+   ```
+   Backend will be available at `http://localhost:8080`
+
+2. **Start Frontend** (in another terminal):
+   ```bash
+   potsandplots start
+   ```
+   Frontend will be available at `http://localhost:3000`
+
+# Backend
+The backend is spring boot and built using gradle. The backend exposes endpoints used by the web app to get data about the plants.
+
+## Running the Backend
+
+To start the backend server:
+
+```bash
+cd backend
+./gradlew bootRun
+```
+
+The backend will start on `http://localhost:8080` and includes:
+- REST API endpoints for plant management
+- H2 in-memory database for development
+- CORS configuration for frontend integration
+- Swagger/OpenAPI documentation (if enabled)
+
+### Backend Development
+
+- Build: `./gradlew build`
+- Test: `./gradlew test`
+- Clean: `./gradlew clean`
+
+The backend uses:
+- Spring Boot 3.2.0
+- Spring Data JPA
+- H2 Database
+- Java 17
 
 # Features and functionality
 ## Adding and removing plants

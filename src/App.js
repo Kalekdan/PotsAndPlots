@@ -1,9 +1,9 @@
-import DebugDashboard from './pages/DebugDashboard';
+import PlantDashboard from './pages/PlantDashboard';
 
 function App() {
   return (
     <div>
-      <DebugDashboard />
+      <PlantDashboard />
     </div>
   );
 }

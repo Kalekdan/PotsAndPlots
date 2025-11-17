@@ -1,0 +1,72 @@
+package com.potsandplots.controller;
+
+import com.potsandplots.dto.PlantCreateRequest;
+import com.potsandplots.model.Plant;
+import com.potsandplots.repository.PlantRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+@RestController
+@RequestMapping("/api/plants")
+@CrossOrigin(origins = "http://localhost:3000")
+public class PlantController {
+    
+    @Autowired
+    private PlantRepository plantRepository;
+    
+    @GetMapping
+    public List<Plant> getAllPlants() {
+        return plantRepository.findAll();
+    }
+    
+    @GetMapping("/{id}")
+    public Plant getPlant(@PathVariable Long id) {
+        return plantRepository.findById(id).orElse(null);
+    }
+    
+    @GetMapping("/area/{areaId}")
+    public List<Plant> getPlantsByArea(@PathVariable Long areaId) {
+        return plantRepository.findByAreaId(areaId);
+    }
+    
+    @GetMapping("/plot/{plotId}")
+    public List<Plant> getPlantsByPlot(@PathVariable Long plotId) {
+        return plantRepository.findByPlotId(plotId);
+    }
+    
+    @PostMapping
+    public Plant createPlant(@RequestBody PlantCreateRequest request) {
+        Plant plant = new Plant(request.getName(), request.getSpeciesId(), request.getAreaId());
+        plant.setPlotId(request.getPlotId());
+        plant.setPositionX(request.getPositionX());
+        plant.setPositionY(request.getPositionY());
+        plant.setNotes(request.getNotes());
+        plant.setWateringSchedule("weekly");
+        return plantRepository.save(plant);
+    }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> deletePlant(@PathVariable Long id) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            if (plantRepository.existsById(id)) {
+                plantRepository.deleteById(id);
+                response.put("success", true);
+                response.put("plantId", id);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("error", "Plant not found");
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(response);
+        }
+    }
+}
