@@ -12,7 +12,8 @@ While the app's specific functionality isn't detailed in this README, the struct
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) (recommended version 14.x or later)
-- [npm](https://www.npmjs.com/) (comes with recent Node.js)
+- [pnpm](https://pnpm.io/) (alternative package manager to npm)
+  - Install: `npm install -g pnpm` (if you don't already have it)
 
 ### Installation
 
@@ -21,7 +22,7 @@ Clone the repository, then install dependencies:
 ```bash
 git clone https://github.com/Kalekdan/PotsAndPlots.git
 cd PotsAndPlots
-npm install
+pnpm install
 ```
 
 ### Running the App
@@ -29,17 +30,28 @@ npm install
 To start the development server, run:
 
 ```bash
-npm start
+pnpm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser to view the app.
+
+### Optional: Running a JSON mock backend
+
+If you want a simple local JSON backend (example using json-server):
+
+```bash
+pnpm add -D json-server
+pnpm exec json-server --watch mock-backend/db.json --port 4000
+```
+
+Adjust the path/port as needed and point the frontend to that backend URL.
 
 ### Building for Production
 
 Build the app for production with:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 The optimized static files will be output to the `build/` directory, ready to deploy.
@@ -49,15 +61,15 @@ The optimized static files will be output to the `build/` directory, ready to de
 Run the interactive test runner:
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Available Scripts
 
-- `npm start` – Runs the app in development mode.
-- `npm run build` – Builds the app for production.
-- `npm test` – Launches the test runner.
-- `npm run eject` – Ejects the configuration (irreversible, advanced use).
+- `pnpm start` – Runs the app in development mode.
+- `pnpm build` – Builds the app for production.
+- `pnpm test` – Launches the test runner.
+- `pnpm run eject` – Ejects the configuration (irreversible, advanced use).
 
 ## Learn More
 
