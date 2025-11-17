@@ -5,7 +5,17 @@ const API_BASE_URL = 'http://localhost:8080/api';
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    let errorMessage = `HTTP error! status: ${response.status}`;
+    try {
+      const errorData = await response.text();
+      if (errorData) {
+        errorMessage += ` - ${errorData}`;
+      }
+    } catch (e) {
+      // If we can't parse the error response, just use the status
+    }
+    console.error('API Error:', errorMessage);
+    throw new Error(errorMessage);
   }
   return await response.json();
 };
@@ -37,6 +47,10 @@ export async function getPlants() {
   return apiCall('/plants');
 }
 
+export async function getPlant(plantId) {
+  return apiCall(`/plants/${plantId}`);
+}
+
 export async function getPlantTypes() {
   return apiCall('/plant-types');
 }
@@ -53,6 +67,24 @@ export async function addPlant(plantData) {
       positionY: plantData.position?.y,
       notes: plantData.notes || ''
     })
+  });
+}
+
+export async function updatePlant(plantId, plantData) {
+  const payload = {
+    name: plantData.name,
+    speciesId: plantData.speciesId,
+    healthStatus: plantData.healthStatus,
+    notes: plantData.notes,
+    wateringSchedule: plantData.wateringSchedule,
+    plantedDate: plantData.plantedDate
+  };
+  
+  console.log('Updating plant:', plantId, 'with data:', payload);
+  
+  return apiCall(`/plants/${plantId}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
   });
 }
 

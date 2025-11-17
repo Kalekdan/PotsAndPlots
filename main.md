@@ -116,3 +116,4 @@ The backend uses:
 ## Adding and removing plants
 - A button next to each plant should let you remove it with a single click
 - A button next to each area/plot should let you add a new plant
+- Clicking on a plant opens a page where you can update the settings of each plant

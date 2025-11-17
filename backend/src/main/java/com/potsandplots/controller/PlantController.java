@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/plants")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class PlantController {
     
     @Autowired
@@ -49,6 +49,45 @@ public class PlantController {
         return plantRepository.save(plant);
     }
     
+    @PutMapping("/{id}")
+    public ResponseEntity<Plant> updatePlant(@PathVariable Long id, @RequestBody Plant plantUpdate) {
+        try {
+            System.out.println("Updating plant with ID: " + id);
+            System.out.println("Plant update data: " + plantUpdate.getName());
+            
+            return plantRepository.findById(id)
+                .map(plant -> {
+                    if (plantUpdate.getName() != null && !plantUpdate.getName().trim().isEmpty()) {
+                        plant.setName(plantUpdate.getName());
+                    }
+                    if (plantUpdate.getSpeciesId() != null) {
+                        plant.setSpeciesId(plantUpdate.getSpeciesId());
+                    }
+                    if (plantUpdate.getHealthStatus() != null) {
+                        plant.setHealthStatus(plantUpdate.getHealthStatus());
+                    }
+                    if (plantUpdate.getNotes() != null) {
+                        plant.setNotes(plantUpdate.getNotes());
+                    }
+                    if (plantUpdate.getWateringSchedule() != null) {
+                        plant.setWateringSchedule(plantUpdate.getWateringSchedule());
+                    }
+                    if (plantUpdate.getPlantedDate() != null) {
+                        plant.setPlantedDate(plantUpdate.getPlantedDate());
+                    }
+                    // Note: Not updating area, plot, or position as those require more complex logic
+                    Plant savedPlant = plantRepository.save(plant);
+                    System.out.println("Plant updated successfully: " + savedPlant.getName());
+                    return ResponseEntity.ok(savedPlant);
+                })
+                .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            System.err.println("Error updating plant: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deletePlant(@PathVariable Long id) {
         Map<String, Object> response = new HashMap<>();

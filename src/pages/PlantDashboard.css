@@ -234,6 +234,18 @@
   justify-content: center;
 }
 
+.grid-plant-info.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.grid-plant-info.clickable:hover {
+  background: rgba(5, 150, 105, 0.1);
+  border-radius: 4px;
+  padding: 0.25rem;
+  margin: -0.25rem;
+}
+
 .grid-plant-name {
   font-weight: 600;
   font-size: 0.9rem;
@@ -247,22 +259,40 @@
   opacity: 0.8;
 }
 
-.grid-remove-btn {
+.grid-plant-actions {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+}
+
+.grid-edit-btn, .grid-remove-btn {
   background: rgba(239, 68, 68, 0.9);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  font-size: 0.7rem;
+  width: 18px;
+  height: 18px;
+  font-size: 0.6rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+}
+
+.grid-edit-btn {
+  background: rgba(59, 130, 246, 0.9);
+}
+
+.grid-edit-btn:hover {
+  background: #3b82f6;
+  transform: scale(1.1);
+}
+
+.grid-remove-btn {
+  background: rgba(239, 68, 68, 0.9);
 }
 
 .grid-remove-btn:hover {
@@ -345,6 +375,18 @@
   flex: 1;
 }
 
+.plant-info.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.plant-info.clickable:hover {
+  background: rgba(5, 150, 105, 0.05);
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin: -0.5rem;
+}
+
 .plant-name {
   margin: 0 0 0.25rem 0;
   color: #059669;
@@ -391,7 +433,14 @@
   font-style: italic;
 }
 
-.remove-btn {
+.plant-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-left: 1rem;
+}
+
+.edit-btn, .remove-btn {
   background: rgba(239, 68, 68, 0.1);
   color: #dc2626;
   border: none;
@@ -400,7 +449,26 @@
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.2s ease;
-  margin-left: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-btn {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.edit-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: scale(1.05);
+}
+
+.remove-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
 }
 
 .remove-btn:hover {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   getAreas,
   getPlots,
@@ -10,6 +11,7 @@ import {
 import './PlantDashboard.css';
 
 export default function PlantDashboard() {
+  const navigate = useNavigate();
   const [areas, setAreas] = useState([]);
   const [plots, setPlots] = useState([]);
   const [plants, setPlants] = useState([]);
@@ -92,7 +94,11 @@ export default function PlantDashboard() {
 
   const renderPlant = (plant) => (
     <div key={plant.id} className="plant-card">
-      <div className="plant-info">
+      <div 
+        className="plant-info clickable" 
+        onClick={() => navigate(`/plant/${plant.id}`)}
+        title="Click to edit plant details"
+      >
         <h4 className="plant-name">{plant.name}</h4>
         <p className="plant-type">{getPlantType(plant.speciesId)}</p>
         {plant.healthStatus && (
@@ -102,14 +108,27 @@ export default function PlantDashboard() {
         )}
         {plant.notes && <p className="plant-notes">{plant.notes}</p>}
       </div>
-      <button 
-        onClick={() => handleRemovePlant(plant.id, plant.name)}
-        className="remove-btn"
-        disabled={loading}
-        title="Remove plant"
-      >
-        🗑️
-      </button>
+      <div className="plant-actions">
+        <button 
+          onClick={() => navigate(`/plant/${plant.id}`)}
+          className="edit-btn"
+          disabled={loading}
+          title="Edit plant"
+        >
+          ✏️
+        </button>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRemovePlant(plant.id, plant.name);
+          }}
+          className="remove-btn"
+          disabled={loading}
+          title="Remove plant"
+        >
+          🗑️
+        </button>
+      </div>
     </div>
   );
 
@@ -134,18 +153,38 @@ export default function PlantDashboard() {
           <div key={key} className="grid-cell">
             {plant ? (
               <div className="grid-plant">
-                <div className="grid-plant-info">
+                <div 
+                  className="grid-plant-info clickable" 
+                  onClick={() => navigate(`/plant/${plant.id}`)}
+                  title="Click to edit plant details"
+                >
                   <div className="grid-plant-name">{plant.name}</div>
                   <div className="grid-plant-type">{getPlantType(plant.speciesId)}</div>
                 </div>
-                <button 
-                  onClick={() => handleRemovePlant(plant.id, plant.name)}
-                  className="grid-remove-btn"
-                  disabled={loading}
-                  title="Remove plant"
-                >
-                  ✕
-                </button>
+                <div className="grid-plant-actions">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/plant/${plant.id}`);
+                    }}
+                    className="grid-edit-btn"
+                    disabled={loading}
+                    title="Edit plant"
+                  >
+                    ✏️
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemovePlant(plant.id, plant.name);
+                    }}
+                    className="grid-remove-btn"
+                    disabled={loading}
+                    title="Remove plant"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             ) : (
               <button 
