@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   getPlant,
@@ -41,11 +41,7 @@ export default function PlantDetails() {
   const [showMoveDialog, setShowMoveDialog] = useState(false);
   const [moveSelectedPosition, setMoveSelectedPosition] = useState(null);
 
-  useEffect(() => {
-    loadData();
-  }, [plantId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -89,7 +85,11 @@ export default function PlantDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [plantId]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
